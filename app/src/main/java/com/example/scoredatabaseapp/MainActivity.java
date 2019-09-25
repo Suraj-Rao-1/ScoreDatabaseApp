@@ -35,21 +35,31 @@ public class MainActivity extends AppCompatActivity {
         // gets score name and value from edittext and uses it to create a new Scores object
         // it adds this element to the database and then reprints the database to show the change
 
-        Scores score = new Scores(nameEditText.getText().toString(),
-                Integer.parseInt(scoreEditText.getText().toString()));
-        databaseHelper.addScore(score);
+        String name = nameEditText.getText().toString();
+        if (name.length() != 0) {
+            try {
+                int scoreNum = Integer.parseInt(scoreEditText.getText().toString());
+                Scores score = new Scores(name, scoreNum);
+                databaseHelper.addScore(score);
+                nameEditText.setText("");
+                scoreEditText.setText("");
+
+            } catch (Exception e) {
+                Toast.makeText(this, "Enter a valid score", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        else {
+            Toast.makeText(this, "Enter a name", Toast.LENGTH_SHORT).show();
+        }
 
         printDB();
-
-        nameEditText.setText("");
-        scoreEditText.setText("");
-
     }
 
     public void removeButtonClicked(View v){
         // Requires the user to enter the name and score of an entry to delete
         // If the same name/score combo are in table more than once all entries are
-        // deleted with that combination. 
+        // deleted with that combination.
 
         String nameToRemove = nameEditText.getText().toString();
         int scoreToRemove = -1;
