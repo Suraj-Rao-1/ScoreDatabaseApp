@@ -5,15 +5,18 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class MyDatabaseHelper extends SQLiteOpenHelper {
+
+    private static final String TAG = "MyDatabaseHelper";
     //Define facts about the database to set it up including its name
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "scores.db";
 
     //Define tables in the database
-    public static final String TABLE_SCORES = "scores";             // datatbase name
-    public static final String COLUMN_ID = "id";                    // unique id for the entry
+    public static final String TABLE_SCORES = "scores";             // table name
+    public static final String COLUMN_ID = "_id";                   // unique id for the entry
     public static final String COLUMN_SCORE_NAME = "scorename";
     public static final String COLUMN_SCORE = "score";
 
@@ -23,12 +26,6 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, factory, DATABASE_VERSION);
     }
 
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        String query = "DROP TABLE IF EXISTS" + TABLE_SCORES;
-        db.execSQL(query);
-        onCreate(db);
-    }
 
     @Override
     /*
@@ -38,9 +35,17 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
     public void onCreate(SQLiteDatabase db) {
         String query = " CREATE TABLE " + TABLE_SCORES + " ( " + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_SCORE_NAME + " TEXT " +  COLUMN_SCORE + " INTEGER " + ");";
+                COLUMN_SCORE_NAME + " TEXT, " +  COLUMN_SCORE + " INTEGER )" + ";";
         db.execSQL(query);
     }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        String query = "DROP TABLE IF EXISTS " + TABLE_SCORES;
+        db.execSQL(query);
+        onCreate(db);
+    }
+
 
     public void addScore(Scores score) {
         // ContentValues is like a datastructure that allows you to attach values
@@ -50,17 +55,23 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_SCORE_NAME, score.get_name());
         values.put(COLUMN_SCORE, score.get_score());
         SQLiteDatabase db = getWritableDatabase();
-        db.insert(TABLE_SCORES, null, values);  // inserts these values into this table
+        long result = db.insert(TABLE_SCORES, null, values);  // inserts these values into this table
+
+        Log.d(TAG, "Tried to insert score, result was " + result);
 
         db.close();             // need to close the database when we are done modifying it.
     }
 
-    public void removeScore(String scoreName) {
+    // Right now this method will remove all entries with this name
+    public void removeScore(String scoreName, int scoreNum) {
         SQLiteDatabase db = getWritableDatabase();
-        String query = "DELETE FROM" + TABLE_SCORES + "WHERE" + COLUMN_SCORE_NAME + "=\"" + scoreName + "\";";
+        String query = "DELETE FROM " + TABLE_SCORES + " WHERE " + COLUMN_SCORE_NAME + " = '" +
+                scoreName + "'" + " AND " + COLUMN_SCORE + " = '" + scoreNum + "'";
         db.execSQL(query);
-
+        db.close();
     }
+
+
 
     // This method creates a String representation of all the database elements
     // this is simply for quick viewing of our database contents

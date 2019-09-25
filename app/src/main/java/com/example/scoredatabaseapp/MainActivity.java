@@ -2,10 +2,12 @@ package com.example.scoredatabaseapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,7 +35,8 @@ public class MainActivity extends AppCompatActivity {
         // gets score name and value from edittext and uses it to create a new Scores object
         // it adds this element to the database and then reprints the database to show the change
 
-        Scores score = new Scores(nameEditText.getText().toString(), Integer.parseInt(scoreEditText.getText().toString()));
+        Scores score = new Scores(nameEditText.getText().toString(),
+                Integer.parseInt(scoreEditText.getText().toString()));
         databaseHelper.addScore(score);
 
         printDB();
@@ -44,16 +47,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void removeButtonClicked(View v){
-        // need to first get the name from the edittext field of the score that you want to delete
-        // call the removeScore method to remove score from the database, then print it again
+        // Requires the user to enter the name and score of an entry to delete
+        // If the same name/score combo are in table more than once all entries are
+        // deleted with that combination. 
 
         String nameToRemove = nameEditText.getText().toString();
-        databaseHelper.removeScore(nameToRemove);
+        int scoreToRemove = -1;
+
+        // Verify the name field isn't empty
+        if(nameToRemove.length() != 0) {
+
+            try {
+                // Try to convert score field to an int
+                scoreToRemove = Integer.parseInt(scoreEditText.getText().toString());
+
+                // If there is a name, and an int, then call removeScore method
+                databaseHelper.removeScore(nameToRemove, scoreToRemove);
+
+                // clear the edittext fields
+                nameEditText.setText("");
+                scoreEditText.setText("");
+
+            } catch (Exception e) {
+                // the value in the score edittext wasn't an int
+                Toast.makeText(this, "Invalid score", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        else {
+            Toast.makeText(this, "Enter a name", Toast.LENGTH_SHORT).show();
+        }
+
 
         printDB();
-
-        nameEditText.setText("");
-        scoreEditText.setText("");
     }
 
     public void printDB() {
